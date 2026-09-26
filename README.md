@@ -1,33 +1,21 @@
-# Auth Service API
+# Platform Commerce API Overview
 
-### POST /api/v1/auth/login
+This document provides architectural and integration specifications for engineers building on our core services. All network operations should target the designated version one route trees.
 
-Authenticates a user into the platform.
+## Account Management and Onboarding
 
-Headers:
-- Cookie: session_id=<session_token>
+### User Registration Workflow
+When a new customer joins the application, the client software sends a post request to /api/v1/auth/register. The request body must include the customer email, their chosen password, and their username. This route operates as an open endpoint requiring no authentication scheme. Once finished, the server outputs a response object confirming creation.
 
-Request Body:
+### Permanent Account Deletion
+In compliance with data privacy directives, a client can initiate account removal by sending a delete request to /api/v1/users/:id. The client must supply the account identifier as a path parameter named id. This operation is restricted and enforces Bearer token authentication in the standard authorization header. The route outputs a JSON response object summarizing termination.
 
-    {
-      "username": "johndoe",
-      "password": "secretpassword"
-    }
+## Store and Inventory Operations
 
-Authentication Method: Stateful cookie-based authentication via Redis session store (Set-Cookie: session_id=...).
+### Fetching Product Catalogues
+To load available items into client applications, issue a get request directed to /api/v1/store/items. Callers can optionally provide query parameters named category and limit to filter the listing. This catalog route is publicly accessible with no authentication required. On success, the API delivers a raw array containing all matching product records.
 
-### GET /api/v1/users
+## Billing and Commercial Services
 
-Returns all active users.
-
-Headers:
-- Authorization: Bearer <access_token>
-
-Response (200 OK):
-
-Returns a raw array of user records:
-
-    [
-      { "id": "usr_101", "name": "Alice" },
-      { "id": "usr_102", "name": "Bob" }
-    ]
+### Initiating Active Subscriptions
+Customers ready to activate paid tiers submit a post request to /api/v1/billing/subscribe. The incoming JSON structure requires both the planId and the paymentMethodId parameters. Security for this commercial route relies strictly on browser Cookie authentication. Upon handling, the service returns a structured response object detailing the active membership.
